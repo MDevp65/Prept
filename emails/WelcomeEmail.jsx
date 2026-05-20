@@ -76,7 +76,7 @@ export default function WelcomeEmail({ userName = "there" }) {
           <Hr style={{ borderColor: "#e5e7eb", margin: "24px 0" }} />
 
           <Button
-            href="https://prept.com/dashboard" // Replace with your actual URL
+            href="https://prept-intrview.vercel.app/" 
             style={{
               backgroundColor: "#f59e0b",
               color: "#ffffff",
