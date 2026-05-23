@@ -99,7 +99,18 @@ export const getUserWorkSpaces = async () => {
         if (!dbUser) throw new Error("User not found");
 
         const workspaces = await db.workspace.findMany({
-            where: { adminId: dbUser.id },
+            where: {
+                OR: [
+                    { adminId: dbUser.id },
+                    {
+                        members: {
+                            some: {
+                                userId: dbUser.id
+                            }
+                        }
+                    }
+                ]
+            },
             include: {
                 members: true,
             },
@@ -332,5 +343,99 @@ export const deleteMembersFromWorkSpace = async ({ workSpId, memberIds }) => {
     } catch (error) {
         console.error("Members deletion failure:", error);
         throw new Error(error.message || "Members deletion failed. Please try again.");
+    }
+}
+
+export const getWorkspaceDashboardStats = async () => {
+    try {
+        const user = await currentUser();
+        if (!user) throw new Error("Unauthorized");
+
+        const dbUser = await db.user.findUnique({
+            where: { clerkUserId: user.id },
+        });
+
+        if (!dbUser) throw new Error("User not found");
+
+        // 1. Get owned vs joined workspace counts
+        const ownedCount = await db.workspace.count({
+            where: { adminId: dbUser.id }
+        });
+
+        const joinedCount = await db.workspace.count({
+            where: {
+                adminId: { not: dbUser.id },
+                members: {
+                    some: { userId: dbUser.id }
+                }
+            }
+        });
+
+        // 2. Get tasks assigned to user (with project & workspace details)
+        const tasksAssignedTo = await db.task.findMany({
+            where: { assignedToId: dbUser.id },
+            include: {
+                project: {
+                    include: {
+                        workspace: true
+                    }
+                },
+                assignedBy: {
+                    select: {
+                        id: true,
+                        name: true,
+                        imageUrl: true,
+                        email: true
+                    }
+                }
+            },
+            orderBy: { updatedAt: "desc" }
+        });
+
+        // 3. Get tasks assigned by user to others
+        const tasksAssignedBy = await db.task.findMany({
+            where: { assignedById: dbUser.id },
+            include: {
+                project: {
+                    include: {
+                        workspace: true
+                    }
+                },
+                assignedTo: {
+                    select: {
+                        id: true,
+                        name: true,
+                        imageUrl: true,
+                        email: true
+                    }
+                }
+            },
+            orderBy: { updatedAt: "desc" }
+        });
+
+        // 4. Calculate task statuses breakdown for progress timeline
+        const totalAssignedTasks = tasksAssignedTo.length;
+        const completedTasks = tasksAssignedTo.filter(t => t.status === "COMPLETED").length;
+        const inProgressTasks = tasksAssignedTo.filter(t => t.status === "INPROGRESS").length;
+        const inReviewTasks = tasksAssignedTo.filter(t => t.status === "INREVIEW").length;
+        const todoTasks = tasksAssignedTo.filter(t => t.status === "TODO").length;        
+
+        return {
+            totalWorkspacesOwned: ownedCount,
+            totalWorkspacesJoined: joinedCount,
+            tasksAssignedToMe: tasksAssignedTo,
+            tasksAssignedByMe: tasksAssignedBy,
+            stats: {
+                totalTasks: totalAssignedTasks,
+                completedTasks,
+                inProgressTasks,
+                inReviewTasks,
+                todoTasks,
+                completionRate: totalAssignedTasks > 0 ? Math.round((completedTasks / totalAssignedTasks) * 100) : 0
+            }
+        };
+    } catch (error) {
+        console.error("Dashboard stats fetching failure:", error);
+        throw new Error("Dashboard stats fetching failed.");
     }
 }

@@ -4,8 +4,9 @@ import { BriefcaseBusiness } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import React from 'react'
 
-const WorkSpaceCard = ({ workspace }) => {
+const WorkSpaceCard = ({ workspace, userId }) => {
     const router = useRouter();
+    const isAdmin = workspace.adminId === userId;
     return (
         <Card
             onClick={() => router.push(`/workspace/${workspace.id}`)}
@@ -22,8 +23,17 @@ const WorkSpaceCard = ({ workspace }) => {
                 {/* Top row — name + go arrow */}
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2.5">
-                        <BriefcaseBusiness size={22} className="text-amber-400" />
+                        <BriefcaseBusiness size={22} className="text-amber-400 animate-pulse" />
                         <span className="text-amber-300 font-medium text-lg">{workspace.name}</span>
+                        {isAdmin ? (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-amber-400/10 text-amber-400 border border-amber-400/20 font-medium tracking-wide uppercase">
+                                Owner
+                            </span>
+                        ) : (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium tracking-wide uppercase">
+                                Member
+                            </span>
+                        )}
                     </div>
                     <span className="flex items-center gap-1 text-xs font-medium tracking-wide text-amber-400
             opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0

@@ -81,7 +81,7 @@ const TaskPreviewDialog = ({ open, onClose, task }) => {
                         <GrayTitle className="font-semibold">Description</GrayTitle>
                         <div className="border border-white/5 rounded-md">
                             <MDEditor.Markdown
-                                className="rounded px-2 py-1 max-h-[200px] overflow-y-auto md-preview-scroll"
+                                className="rounded px-2 py-1 max-h-50 overflow-y-auto md-preview-scroll"
                                 source={task.description ? task.description : "--"}
                             />
                         </div>
@@ -116,7 +116,7 @@ const TaskPreviewDialog = ({ open, onClose, task }) => {
     )
 }
 
-const TaskCard = ({ task, onDelete, onEdit }) => {
+const TaskCard = ({ task, onDelete, onEdit, userRole }) => {
     const priority = task.priority?.toUpperCase() || "LOW";
     const pStyle = PRIORITY_STYLES[priority] || PRIORITY_STYLES.LOW;
 
@@ -135,20 +135,22 @@ const TaskCard = ({ task, onDelete, onEdit }) => {
                 />
 
                 {/* Hover Action Buttons */}
-                <div className="absolute top-3 right-3 opacity-0 group-hover/card:opacity-100 transition-all duration-200 flex gap-1.5 z-20 bg-zinc-900/90 backdrop-blur-md p-1 rounded-lg border border-white/10 shadow-lg">
-                    <button
-                        onClick={(e) => { e.stopPropagation(); onEdit(task); }}
-                        className="text-white/40 hover:text-white transition-colors p-1 rounded-md hover:bg-white/5"
-                    >
-                        <Edit2 size={13} />
-                    </button>
-                    <button
-                        onClick={(e) => { e.stopPropagation(); onDelete(task.id); }}
-                        className="text-white/40 hover:text-red-400 transition-colors p-1 rounded-md hover:bg-white/5"
-                    >
-                        <Trash2 size={13} />
-                    </button>
-                </div>
+                {userRole === "ADMIN" && (
+                    <div className="absolute top-3 right-3 opacity-0 group-hover/card:opacity-100 transition-all duration-200 flex gap-1.5 z-20 bg-zinc-900/90 backdrop-blur-md p-1 rounded-lg border border-white/10 shadow-lg">
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onEdit(task); }}
+                            className="text-white/40 hover:text-white transition-colors p-1 rounded-md hover:bg-white/5"
+                        >
+                            <Edit2 size={13} />
+                        </button>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onDelete(task.id); }}
+                            className="text-white/40 hover:text-red-400 transition-colors p-1 rounded-md hover:bg-white/5"
+                        >
+                            <Trash2 size={13} />
+                        </button>
+                    </div>
+                )}
 
                 <CardHeader className="pt-6 pb-2 px-4 flex items-center justify-between">
                     <CardTitle className="text-[15px] font-medium text-white/90 leading-snug pr-8">
@@ -186,7 +188,7 @@ const TaskCard = ({ task, onDelete, onEdit }) => {
                                     className="object-cover w-full h-full"
                                 />
                             </div>
-                            <span className="text-[10px] text-white/40 truncate max-w-[80px] font-medium">
+                            <span className="text-[10px] text-white/40 truncate max-w-20 font-medium">
                                 {task.assignedTo.name || task.assignedTo.email}
                             </span>
                         </div>
@@ -205,7 +207,7 @@ const TaskCard = ({ task, onDelete, onEdit }) => {
     );
 };
 
-export default function KanbanBoard({ tasks, onTaskUpdate, onEditTask, onAddTask }) {
+export default function KanbanBoard({ tasks, onTaskUpdate, onEditTask, onAddTask, userRole }) {
     const [isMounted, setIsMounted] = useState(false);
     const [columns, setColumns] = useState({});
 
@@ -306,7 +308,7 @@ export default function KanbanBoard({ tasks, onTaskUpdate, onEditTask, onAddTask
             {/* Filter Section */}
             <div className="flex flex-wrap items-center gap-4 bg-zinc-950/40 my-4 p-1 rounded-xl border border-white/5 max-w-6xl mx-auto w-full">
                 {/* Search Input */}
-                <div className="relative flex-1 min-w-[200px] max-w-xs">
+                <div className="relative flex-1 min-w-50 max-w-xs">
                     <Input
                         placeholder="Search tasks..."
                         value={searchTerm}
@@ -391,7 +393,7 @@ export default function KanbanBoard({ tasks, onTaskUpdate, onEditTask, onAddTask
                                     <div
                                         {...provided.droppableProps}
                                         ref={provided.innerRef}
-                                        className="space-y-2 flex flex-col min-h-[500px] "
+                                        className="space-y-2 flex flex-col min-h-125 "
                                     >
                                         <h3 className="font-semibold mb-2 text-center text-white/80">
                                             {column.name}
@@ -413,13 +415,14 @@ export default function KanbanBoard({ tasks, onTaskUpdate, onEditTask, onAddTask
                                                             task={task}
                                                             onDelete={handleDelete}
                                                             onEdit={onEditTask}
+                                                            userRole={userRole}
                                                         />
                                                     </div>
                                                 )}
                                             </Draggable>
                                         ))}
                                         {provided.placeholder}
-                                        {column.key === "TODO" && (
+                                        {column.key === "TODO" && userRole === "ADMIN" && (
                                             <Button
                                                 variant="ghost"
                                                 className="w-full"

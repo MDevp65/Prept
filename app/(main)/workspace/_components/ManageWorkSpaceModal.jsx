@@ -183,10 +183,10 @@ const DeletePanel = ({ workspace, cancel }) => {
 }
 
 const ManageWorkSpaceModal = ({ isOpen, onClose, workspace, members, onUpdate }) => {
-    const [activeTab, setActiveTab] = useState('update')
+    const [activeTab, setActiveTab] = useState('invite')
     const handleCancle = () => {
         onClose();
-        setActiveTab("update")
+        setActiveTab("invite")
     }
 
     return (

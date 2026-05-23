@@ -48,8 +48,8 @@ export default function WelcomeEmail({ userName = "there" }) {
           </Heading>
 
           <Text style={{ fontSize: "14px", color: "#374151", lineHeight: "1.6" }}>
-            You’re officially ready to master your next big career move. Whether you're here to 
-            <strong> sharpen your interview skills</strong> or <strong>manage your latest projects</strong>, 
+            You’re officially ready to master your next big career move. Whether you're here to
+            <strong> sharpen your interview skills</strong> or <strong>manage your latest projects</strong>,
             Prept gives you the tools to succeed in one place.
           </Text>
 
@@ -76,7 +76,11 @@ export default function WelcomeEmail({ userName = "there" }) {
           <Hr style={{ borderColor: "#e5e7eb", margin: "24px 0" }} />
 
           <Button
+<<<<<<< HEAD
             href="https://prept-intrview.vercel.app/" 
+=======
+            href="https://prept-prept.vercel.app/" // Replace with your actual URL
+>>>>>>> 6177586 (built project dashboard)
             style={{
               backgroundColor: "#f59e0b",
               color: "#ffffff",

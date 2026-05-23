@@ -2,9 +2,11 @@
 
 import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useUser } from '@clerk/nextjs'
 import useFetch from '@/hooks/use-fetch'
 import { getProjectById, deleteProject } from '@/actions/projects'
 import { getProjectTasks } from '@/actions/tasks'
+import { getWorkSpaceMembers } from '@/actions/workspace'
 import PageHeader from '@/components/custom/reusables'
 import { Button } from '@/components/ui/button'
 import { Trash2, Loader2 } from 'lucide-react'
@@ -15,13 +17,16 @@ import DesktopOnlyCard from '@/components/custom/DesktopOnlyCard'
 const ProjectPage = () => {
     const { projId } = useParams();
     const router = useRouter();
+    const { user } = useUser();
 
     const { data: project, loading, fn: fetchProject, error } = useFetch(getProjectById);
     const { data: tasks, loading: tasksLoading, fn: fetchTasks } = useFetch(getProjectTasks);
     const { data: delData, loading: isDeleting, fn: delProj } = useFetch(deleteProject);
+    const { data: workspaceMembers, fn: getWorkspaceMembers } = useFetch(getWorkSpaceMembers);
 
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [selectedTask, setSelectedTask] = useState(null);
+    const [userRole, setUserRole] = useState(null);
 
     useEffect(() => {
         if (projId) {
@@ -29,6 +34,19 @@ const ProjectPage = () => {
             fetchTasks(projId);
         }
     }, [projId]);
+
+    useEffect(() => {
+        if (project) {
+            getWorkspaceMembers(project.workspaceId);
+        }
+    }, [project]);
+
+    useEffect(() => {
+        if (user && workspaceMembers?.members && workspaceMembers?.members.length > 0) {
+            const currentUserMember = workspaceMembers?.members.find(member => member.user?.email === user.primaryEmailAddress?.emailAddress);
+            setUserRole(currentUserMember?.role || null);
+        }
+    }, [user, workspaceMembers]);
 
     const handleOpenDrawer = (task = null) => {
         setSelectedTask(task);
@@ -78,10 +96,12 @@ const ProjectPage = () => {
                     gold={project.title}
                     description={project.description}
                     right={
-                        <Button variant='destructive' disabled={isDeleting} onClick={handleDeleteProject} className="flex items-center gap-2">
-                            <Trash2 size={18} />
-                            Delete Project
-                        </Button>
+                        userRole === "ADMIN" && (
+                            <Button variant='destructive' disabled={isDeleting} onClick={handleDeleteProject} className="flex items-center gap-2">
+                                <Trash2 size={18} />
+                                Delete Project
+                            </Button>
+                        )
                     }
                 />
 
@@ -95,6 +115,7 @@ const ProjectPage = () => {
                         onTaskUpdate={() => fetchTasks(projId)}
                         onEditTask={handleOpenDrawer}
                         onAddTask={() => handleOpenDrawer(null)}
+                        userRole={userRole}
                     />
                 )}
 

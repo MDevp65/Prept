@@ -84,8 +84,12 @@ export const createTask = async (data) => {
 
         if (!project) throw new Error("Project not found!");
 
-        const isMember = project.workspace.members.some(member => member.userId === dbUser.id);
-        if (!isMember) throw new Error("You are not allowed to create tasks here!");
+        const memberRecord = project.workspace.members.find(member => member.userId === dbUser.id);
+        if (!memberRecord) throw new Error("You are not a member of this workspace!");
+        
+        if (memberRecord.role !== "ADMIN") {
+            throw new Error("Only workspace administrators can create tasks!");
+        }
 
         const task = await db.task.create({
             data: {
@@ -136,8 +140,12 @@ export const updateTask = async (taskId, data) => {
 
         if (!task) throw new Error("Task not found!");
 
-        const isMember = task.project.workspace.members.some(member => member.userId === dbUser.id);
-        if (!isMember) throw new Error("You are not allowed to update tasks here!");
+        const memberRecord = task.project.workspace.members.find(member => member.userId === dbUser.id);
+        if (!memberRecord) throw new Error("You are not a member of this workspace!");
+        
+        if (memberRecord.role !== "ADMIN") {
+            throw new Error("Only workspace administrators can update tasks!");
+        }
 
         const updatedTask = await db.task.update({
             where: { id: taskId },
@@ -187,8 +195,12 @@ export const updateTaskStatus = async (taskId, newStatus) => {
 
         if (!task) throw new Error("Task not found!");
 
-        const isMember = task.project.workspace.members.some(member => member.userId === dbUser.id);
-        if (!isMember) throw new Error("You are not allowed to update tasks here!");
+        const memberRecord = task.project.workspace.members.find(member => member.userId === dbUser.id);
+        if (!memberRecord) throw new Error("You are not a member of this workspace!");
+        
+        if (memberRecord.role !== "ADMIN") {
+            throw new Error("Only workspace administrators can update task status!");
+        }
 
         const updatedTask = await db.task.update({
             where: { id: taskId },
@@ -232,15 +244,12 @@ export const deleteTask = async (taskId) => {
 
         if (!task) throw new Error("Task not found!");
 
-        const isMember = task.project.workspace.members.some(member => member.userId === dbUser.id);
-        if (!isMember) throw new Error("You are not allowed to delete tasks here!");
+        const memberRecord = task.project.workspace.members.find(member => member.userId === dbUser.id);
+        if (!memberRecord) throw new Error("You are not a member of this workspace!");
 
-        const isAdmin = task.project.workspace.adminId === dbUser.id;
-        const isAssignedBy = task.assignedById === dbUser.id;
-        const isAssignedTo = task.assignedToId === dbUser.id;
-
-        if (!isAdmin && !isAssignedBy && !isAssignedTo) {
-            throw new Error("You don't have permission to delete this task.");
+        // Only workspace admins can delete tasks
+        if (memberRecord.role !== "ADMIN") {
+            throw new Error("Only workspace administrators can delete tasks!");
         }
 
         await db.task.delete({

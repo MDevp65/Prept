@@ -57,6 +57,8 @@ export const createNewProject = async (data) => {
 
         if (!workspace) throw new Error("Workspace not found!");
 
+        console.log(workspace.adminId !== dbUser.id);
+        
         if (workspace.adminId !== dbUser.id) throw new Error("Access Denied!");
 
 
@@ -87,7 +89,7 @@ export const createNewProject = async (data) => {
         };
     } catch (error) {
         console.error("Project creation failure:", error);
-        throw new Error("Project creation failed.");
+        throw new Error("Project creation failed.", error.message);
     }
 }
 
@@ -186,4 +188,4 @@ export const getProjectById = async (projectId) => {
         console.error("Project fetching failure:", error);
         throw new Error("Project fetching failed.");
     }
-}
+}
