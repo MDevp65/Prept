@@ -88,7 +88,7 @@ export const createTask = async (data) => {
         if (!memberRecord) throw new Error("You are not a member of this workspace!");
         
         if (memberRecord.role !== "ADMIN") {
-            throw new Error("Only workspace administrators can create tasks!");
+            return;
         }
 
         const task = await db.task.create({
