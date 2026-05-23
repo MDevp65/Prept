@@ -13,7 +13,7 @@
 [![Vercel](https://img.shields.io/badge/Deploy-Vercel-000000?style=flat-square&logo=vercel)](https://vercel.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
-[Live Demo](https://prept-intrview.vercel.app)
+[Live Demo](https://prept-sigma.vercel.app)
 
 </div>
 
