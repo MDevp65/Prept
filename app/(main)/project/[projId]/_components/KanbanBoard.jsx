@@ -46,7 +46,6 @@ const PRIORITY_STYLES = {
 };
 
 const TaskPreviewDialog = ({ open, onClose, task }) => {
-    console.log(task);
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
