@@ -199,7 +199,7 @@ export const updateTaskStatus = async (taskId, newStatus) => {
         if (!memberRecord) throw new Error("You are not a member of this workspace!");
         
         if (memberRecord.role !== "ADMIN") {
-            throw new Error("Only workspace administrators can update task status!");
+            return;
         }
 
         const updatedTask = await db.task.update({
